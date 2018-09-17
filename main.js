@@ -1,151 +1,185 @@
 // 项目入口文件
 // 项目同步到iPhone原理:根据单个文件,寻找依赖(require)直至整个目录
 
-// $app.test = 123
 
 const radius = 15
+const margin = 20
+const height = 40
+const width = $device.info.screen.width
 
-// require('./test/mine.js')
-
+// 全局变量
+$app.img = null
 
 $ui.render({
+    // type:'scroll',
     props: {
-        title: "Tetris",
+        title: "Fancy QR",
     },
     views: [{
-        type: "button",
+        type: "scroll",
         props: {
-            id: 'str2img',
-            bgcolor: $color("#FF0000"),
-            radius: 15,
-            title: 'string2image'
+            id: 'container',
+            bgcolor: $color("#000000"),
+            radius,
         },
         layout: function (make, view) {
-            make.size.equalTo($size(100, 200))
-            // console.log(typeof (view.super.height))
-            // make.height.equalTo(view.super.height/3)
-            make.left.top.right.inset(20)
-            // make.height.equalTo(view.width)
+            // make.size.equalTo($size(0, 0))
+            make.left.right.top.bottom.insets($insets(margin, margin, margin, margin))
         },
-        events: {
-            tapped: function (sender) {
-                // $('test3').updateLayout((make, view) => {
-                //     make.left.right.top.bottom.insets($insets(20, 20, 20, 20))
-
-                // })
-
-                $('str2img').super.add({
-                    type: "button",
-                    props: {
-                        id: 'test3',
-                        bgcolor: $color("#000000"),
-                        radius: 15,
-                    },
-                    layout: function (make, view) {
-                        // make.size.equalTo($size(0, 0))
-                        make.left.right.top.bottom.insets($insets(20, 20, 20, 20))
-                    },
-                    events: {
-                        tapped: function (sender) {
-                            $('test3').remove()
-                        }
-                    },
-                    views: [{
-                        type: "input",
-                        props: {
-                            id: 'input',
-                            type: $kbType.search,
-                            darkKeyboard: true,
-                            text: 'https://'
-                        },
-                        layout: function (make, view) {
-                            make.top.equalTo(view.super).offset(20)
-                            make.width.equalTo($size(150, 40))
-                            make.height.equalTo(40)
-                            make.left.right.insets($insets(20, 20, 20, 20))
-                        },
-                        events: {
-                            returned: function (sender) {
-                                $('image').data = $qrcode.encode($('input').text).png
+        events: {},
+        views: [{
+                type: "image",
+                props: {
+                    id: 'image',
+                    bgcolor: $color('white'),
+                    radius,
+                },
+                layout: function (make, view) {
+                    make.top.inset(margin)
+                    make.left.inset(margin)
+                    // make.right.inset(margin)
+                    make.width.equalTo(width - margin * 4)
+                    make.height.equalTo(view.width)
+                },
+                events: {
+                    tapped: function (sender) {
+                        $quicklook.open({
+                            image: $app.img
+                        })
+                    }
+                }
+            }, {
+                type: "input",
+                props: {
+                    id: 'input',
+                    type: $kbType.search,
+                    darkKeyboard: true,
+                    text: 'https://'
+                },
+                layout: function (make, view) {
+                    make.top.equalTo($('image').bottom).offset(margin)
+                    make.left.inset(margin)
+                    // make.right.inset(margin)
+                    make.width.equalTo(width - margin * 4)
+                    make.height.equalTo(height)
+                },
+                events: {
+                    // 回车后自动编码
+                    returned: function (sender) {
+                        $app.img = $qrcode.encode($('input').text);
+                        $('image').data = $app.img.png
+                    }
+                }
+            },
+            {
+                type: "button",
+                props: {
+                    title: "编码",
+                    id: "encode",
+                },
+                layout: function (make, view) {
+                    make.top.equalTo($('input').bottom).offset(margin)
+                    make.left.inset(margin)
+                    make.width.equalTo((width - margin * 5) / 2)
+                    make.height.equalTo(height)
+                },
+                events: {
+                    tapped: function (sender) {
+                        $app.img = $qrcode.encode($('input').text);
+                        $('image').data = $app.img.png
+                    }
+                }
+            }, {
+                type: "button",
+                props: {
+                    title: "解码",
+                    id: "decode",
+                },
+                layout: function (make, view) {
+                    make.top.equalTo($('input').bottom).offset(margin)
+                    make.left.equalTo($('encode').right).offset(margin)
+                    // make.right.inset(margin)
+                    make.width.equalTo((width - margin * 5) / 2)
+                    make.height.equalTo(height)
+                },
+                events: {
+                    tapped: function (sender) {
+                        $('input').text = $qrcode.decode($app.img);
+                    }
+                }
+            }, {
+                type: "button",
+                props: {
+                    title: "粘贴",
+                    id: 'paste'
+                },
+                layout: function (make, view) {
+                    make.top.equalTo($('encode').bottom).offset(margin)
+                    make.left.inset(margin)
+                    make.width.equalTo((width - margin * 6) / 3)
+                    // make.bottom.inset(margin)
+                    make.height.equalTo(view.width)
+                },
+                events: {
+                    tapped: function (sender) {
+                        $('input').text = $clipboard.text
+                    }
+                }
+            }, {
+                type: "button",
+                props: {
+                    title: "相册",
+                    id: 'album'
+                },
+                layout: function (make, view) {
+                    make.top.equalTo($('encode').bottom).offset(margin)
+                    make.left.equalTo($('paste').right).offset(margin)
+                    make.width.equalTo((width - margin * 6) / 3)
+                    // make.bottom.inset(margin)
+                    make.height.equalTo(view.width)
+                },
+                events: {
+                    tapped: function (sender) {
+                        $photo.pick({
+                            handler: ({
+                                image
+                            }) => {
+                                $('input').text = $qrcode.decode(image);
+                                $app.img = $qrcode.encode($('input').text);
+                                $('image').data = $app.img.png
                             }
-                        }
-                    }, {
-                        type: "button",
-                        props: {
-                            title: "paste",
-                            id: 'paste'
-                        },
-                        layout: function (make, view) {
-                            make.top.equalTo($('input').bottom).offset(20)
-                            make.left.inset(20)
-                            make.width.equalTo(64)
-                            make.height.equalTo(40)
-                        },
-                        events: {
-                            tapped: function (sender) {
-                                $('input').text = $clipboard.text
-                            }
-                        }
-                    }, {
-                        type: "button",
-                        props: {
-                            title: "generate",
-                            id: "generate",
-                        },
-                        layout: function (make, view) {
-                            make.top.equalTo($('input').bottom).offset(20)
-                            make.left.equalTo($('paste').right).offset(20)
-                            make.right.inset(20)
-                            make.height.equalTo(40)
-                        },
-                        events: {
-                            tapped: function (sender) {
-                                let img = $qrcode.encode($('input').text);
-                                $('image').data = img.png
-                            }
-                        }
-                    }, {
-                        type: "image",
-                        props: {
-                            id: 'image',
-                            bgcolor: $color('white'),
-                            radius: 15,
-                            // size:$size(200,200)
-                        },
-                        layout: function (make, view) {
-                            make.top.equalTo($('paste').bottom).offset(20)
-                            make.left.inset(20)
-                            make.right.inset(20)
-                            // make.bottom.inset(20)
-                            make.height.equalTo(view.width)
-                        },
-                        events: {
-                            tapped: function (sender) {
-
-                            }
-                        }
-                    }]
-                })
-
+                        })
+                    }
+                }
+            }, {
+                type: "button",
+                props: {
+                    title: "扫描",
+                    id: 'shot'
+                },
+                layout: function (make, view) {
+                    make.top.equalTo($('encode').bottom).offset(margin)
+                    make.left.equalTo($('album').right).offset(margin)
+                    make.width.equalTo((width - margin * 6) / 3)
+                    make.height.equalTo(view.width)
+                },
+                events: {
+                    tapped: function (sender) {
+                        $qrcode.scan(function (text) {
+                            $('input').text = text
+                            $app.img = $qrcode.encode(text);
+                            $('image').data = $app.img.png
+                        })
+                    }
+                }
             }
-        }
-    }, {
-        type: "button",
-        props: {
-            id: 'test2',
-            bgcolor: $color("#FF0000"),
-            radius: 15,
-            title: 'image2string'
-        },
-        layout: function (make, view) {
-            make.top.equalTo($('str2img').bottom).offset(20)
-            make.size.equalTo($size(100, 200))
-            make.left.right.inset(20)
-        },
-        events: {
-            tapped: function (sender) {
+        ]
 
-            }
-        }
     }]
-})
+});
+
+
+(function init() {
+    $app.img = $qrcode.encode($('input').text);
+    $('image').data = $app.img.png
+})();
