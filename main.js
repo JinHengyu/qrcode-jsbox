@@ -11,7 +11,6 @@ const width = $device.info.screen.width
 $app.img = null
 
 $ui.render({
-    // type:'scroll',
     props: {
         title: "Fancy QR",
     },
